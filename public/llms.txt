@@ -1,0 +1,40 @@
+# SNAP.Cards
+
+> AI-powered business networking platform. Create professional business pages, scan business cards with OCR, and connect with professionals.
+
+## About
+
+SNAP.Cards is a SaaS platform that helps professionals and businesses build AI-powered digital business pages, scan physical business cards using OCR technology, and manage their professional network. The platform supports English and Hebrew (RTL) and is designed for the Israeli and international business community.
+
+## Core Features
+
+- **AI Business Page Builder**: Create professional business pages with AI-generated content, customizable templates, and visual editor
+- **Business Card Scanner**: Scan physical business cards using camera or image upload with Google Cloud Vision OCR and AI field extraction
+- **Social Feed**: Post updates, comment, like, and share within a professional community
+- **Direct Messaging**: Real-time messaging between connected professionals
+- **AI Chatbot**: Each business page can have an AI-powered chatbot trained on the business's knowledge base
+- **Appointment Booking**: Google Calendar integration for booking meetings directly from business pages
+- **QR & NFC Sharing**: Share digital business cards via QR codes and NFC tags
+- **Analytics Dashboard**: Track page views, unique visitors, chatbot interactions, and leads
+- **Custom Domains**: Connect your own domain to your business page
+
+## Business Pages
+
+Each published business page is accessible at `{slug}.snap.cards` or via a custom domain. Pages include:
+- Business information (name, tagline, description)
+- Services and products
+- Contact details and social links
+- Photo galleries
+- Testimonials
+- AI chatbot for visitor questions
+- Appointment booking
+- Lead capture forms
+
+## API
+
+The platform provides API endpoints under `/api/` for internal use. Public business pages are served at subdomains.
+
+## Contact
+
+- Website: https://snap.cards
+- Platform: https://snap.cards/en/login

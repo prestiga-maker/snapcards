@@ -4,6 +4,7 @@ import type { Metadata } from 'next';
 import { TemplateRenderer } from '@/components/pages/TemplateRenderer';
 import { ChatbotWidget } from '@/components/chatbot/ChatbotWidget';
 import { PageTracker } from '@/components/pages/PageTracker';
+import { buildBusinessJsonLd, buildFaqJsonLd } from '@/lib/seo/json-ld';
 import type { PageConfig } from '@/types';
 
 interface SitePageProps {
@@ -14,50 +15,47 @@ export async function generateMetadata({ params }: SitePageProps): Promise<Metad
   const { slug } = await params;
   const page = await prisma.businessPage.findUnique({
     where: { slug, isPublished: true },
-    select: { businessName: true, seoTitle: true, seoDescription: true, seoImageUrl: true, slug: true },
+    select: { businessName: true, seoTitle: true, seoDescription: true, seoImageUrl: true, slug: true, tagline: true, wizardAnswers: true },
   });
 
   if (!page) return {};
 
   const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'snap.cards';
+  const url = `https://${page.slug}.${domain}`;
+  const title = page.seoTitle || page.businessName;
+  const description = page.seoDescription || page.tagline || undefined;
+  const wizard = page.wizardAnswers as Record<string, unknown> | null;
 
   return {
-    title: page.seoTitle || page.businessName,
-    description: page.seoDescription || undefined,
+    title,
+    description,
+    keywords: [page.businessName, wizard?.industry as string, wizard?.targetAudience as string].filter(Boolean),
+    authors: [{ name: page.businessName }],
+    creator: page.businessName,
+    publisher: 'SNAP.Cards',
+    category: (wizard?.industry as string) || undefined,
     openGraph: {
-      title: page.seoTitle || page.businessName,
-      description: page.seoDescription || undefined,
+      title,
+      description,
       images: page.seoImageUrl ? [page.seoImageUrl] : undefined,
-      url: `https://${page.slug}.${domain}`,
+      url,
       type: 'website',
+      siteName: page.businessName,
+      locale: 'en',
     },
     twitter: {
       card: 'summary_large_image',
-      title: page.seoTitle || page.businessName,
-      description: page.seoDescription || undefined,
+      title,
+      description,
       images: page.seoImageUrl ? [page.seoImageUrl] : undefined,
     },
     alternates: {
-      canonical: `https://${page.slug}.${domain}`,
+      canonical: url,
     },
-  };
-}
-
-function buildJsonLd(page: {
-  businessName: string;
-  seoDescription: string | null;
-  slug: string;
-  tagline: string | null;
-  seoImageUrl: string | null;
-}) {
-  const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'snap.cards';
-  return {
-    '@context': 'https://schema.org',
-    '@type': 'LocalBusiness',
-    name: page.businessName,
-    description: page.seoDescription || page.tagline || '',
-    url: `https://${page.slug}.${domain}`,
-    ...(page.seoImageUrl && { image: page.seoImageUrl }),
+    other: {
+      'article:author': page.businessName,
+      'article:section': (wizard?.industry as string) || '',
+    },
   };
 }
 
@@ -73,8 +71,22 @@ export default async function SitePage({ params }: SitePageProps) {
 
   if (!page) notFound();
 
+  const domain = process.env.NEXT_PUBLIC_APP_DOMAIN || 'snap.cards';
+  const url = `https://${page.slug}.${domain}`;
   const config = page.pageConfig as unknown as PageConfig;
-  const jsonLd = buildJsonLd(page);
+
+  const businessJsonLd = buildBusinessJsonLd(
+    {
+      businessName: page.businessName,
+      seoDescription: page.seoDescription,
+      tagline: page.tagline,
+      seoImageUrl: page.seoImageUrl,
+      wizardAnswers: page.wizardAnswers as Record<string, unknown> | null,
+      pageConfig: config,
+    },
+    url,
+  );
+  const faqJsonLd = buildFaqJsonLd(config, url);
   const accentColor = (config.global?.colorScheme as { accent?: string } | undefined)?.accent || '#2563eb';
 
   return (
@@ -82,8 +94,14 @@ export default async function SitePage({ params }: SitePageProps) {
       <head>
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(businessJsonLd) }}
         />
+        {faqJsonLd && (
+          <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }}
+          />
+        )}
       </head>
       <body>
         <PageTracker pageId={page.id.toString()} />

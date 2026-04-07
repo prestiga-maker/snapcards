@@ -1,0 +1,88 @@
+# SNAP.Cards — Full Documentation
+
+> AI-powered business networking platform for professionals and businesses.
+
+## Platform Overview
+
+SNAP.Cards enables professionals to digitize their business identity. Users create AI-powered business pages, scan physical business cards, build a contact network, and engage through a social feed. The platform is bilingual (English/Hebrew) with full RTL support.
+
+## How It Works
+
+### For Business Owners
+1. Sign up at snap.cards
+2. Use the Setup Wizard to describe your business (name, industry, target audience, services)
+3. AI generates a complete business page with professional copy, SEO metadata, and structured sections
+4. Customize with the visual editor — adjust colors, fonts, sections, images
+5. Publish your page at `yourbusiness.snap.cards` or connect a custom domain
+6. Optionally enable AI chatbot to answer visitor questions 24/7
+7. Connect Google Calendar for appointment booking
+8. Track visitors and leads with the analytics dashboard
+
+### For Networking
+1. Scan a physical business card (camera, upload, QR, or NFC)
+2. AI extracts contact details automatically via OCR
+3. Save to your contacts with tags and notes
+4. Send connection requests to other SNAP.Cards users
+5. Chat, share posts, and engage in the social feed
+
+## Business Page Sections
+
+Each AI-generated business page can include these sections:
+- **Hero**: Main banner with business name, tagline, and call-to-action
+- **About**: Business description and story
+- **Services**: List of services or products offered
+- **Gallery**: Photo showcase
+- **Testimonials**: Customer reviews and quotes
+- **Contact**: Contact form, phone, email, address, map
+- **Social Links**: Links to social media profiles
+- **FAQ**: Frequently asked questions (AI-generated)
+- **Chatbot**: AI assistant trained on the business's information
+
+## Subscription Plans
+
+### Free Plan
+- 1 business page
+- Card scanning and contacts
+- Social feed access
+- Direct messaging
+
+### Pro Plan ($20/month)
+- Up to 10 business pages
+- AI chatbot on pages
+- Custom domain support
+- Analytics dashboard
+- Lead export
+- Priority support
+
+## Technical Details
+
+- Built with Next.js (App Router), TypeScript, Tailwind CSS
+- Authentication via Supabase (Google, Apple, email, magic links)
+- Database: MySQL with Prisma ORM
+- AI: Claude/GPT for content generation
+- OCR: Google Cloud Vision API
+- Payments: Stripe
+- Hosting: Vercel
+- CDN: CloudFront
+
+## Structured Data
+
+All published business pages include Schema.org LocalBusiness structured data with:
+- Business name, description, URL
+- Industry/category
+- Contact information (phone, email)
+- Social media profiles
+- Services offered
+- Images
+
+## Languages
+
+- English (en) — LTR
+- Hebrew (he) — RTL with full CSS logical properties support
+
+## URLs
+
+- Main platform: https://snap.cards
+- Business pages: https://{slug}.snap.cards
+- Custom domains: https://{yourdomain.com}
+- Sitemap: https://snap.cards/sitemap.xml
