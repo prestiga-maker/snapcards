@@ -1,0 +1,461 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── Users & Profiles ───────────────────────────────────────
+
+model User {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  supabaseUid      String    @unique @map("supabase_uid") @db.VarChar(255)
+  email            String    @unique @db.VarChar(255)
+  phone            String?   @db.VarChar(50)
+  displayName      String    @map("display_name") @db.VarChar(255)
+  avatarUrl        String?   @map("avatar_url") @db.VarChar(500)
+  locale           String    @default("en") @db.VarChar(2)
+  trustScore       Int       @default(0) @map("trust_score")
+  isVerified       Boolean   @default(false) @map("is_verified")
+  subscriptionTier        String    @default("free") @map("subscription_tier") @db.VarChar(10)
+  googleCalendarToken     Json?     @map("google_calendar_token")
+  googleCalendarConnected Boolean   @default(false) @map("google_calendar_connected")
+  createdAt               DateTime  @default(now()) @map("created_at")
+  updatedAt               DateTime  @updatedAt @map("updated_at")
+  deletedAt               DateTime? @map("deleted_at")
+
+  profile                 Profile?
+  businessPages           BusinessPage[]
+  scannedCards            ScannedCard[]           @relation("ScannerCards")
+  matchedCards            ScannedCard[]           @relation("MatchedCards")
+  sentConnections         Connection[]            @relation("Requester")
+  receivedConnections     Connection[]            @relation("Receiver")
+  posts                   Post[]
+  comments                Comment[]
+  likes                   Like[]
+  conversationParticipants ConversationParticipant[]
+  sentMessages            Message[]
+  notifications           Notification[]
+  pushSubscriptions       PushSubscription[]
+  createdEvents           Event[]
+  subscriptions           Subscription[]
+
+  @@map("users")
+}
+
+model Profile {
+  id                  BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId              BigInt   @unique @map("user_id") @db.UnsignedBigInt
+  firstName           String   @map("first_name") @db.VarChar(255)
+  lastName            String   @map("last_name") @db.VarChar(255)
+  firstNameHe         String?  @map("first_name_he") @db.VarChar(255)
+  lastNameHe          String?  @map("last_name_he") @db.VarChar(255)
+  jobTitle            String?  @map("job_title") @db.VarChar(255)
+  companyName         String?  @map("company_name") @db.VarChar(255)
+  bio                 String?  @db.Text
+  website             String?  @db.VarChar(500)
+  socialLinks         Json?    @map("social_links")
+  location            String?  @db.VarChar(255)
+  lat                 Decimal? @db.Decimal(10, 8)
+  lng                 Decimal? @db.Decimal(11, 8)
+  profileCompleteness Int      @default(0) @map("profile_completeness") @db.TinyInt
+  qrCodeUrl           String?  @map("qr_code_url") @db.VarChar(500)
+  nfcTagId            String?  @map("nfc_tag_id") @db.VarChar(255)
+  scanCount           Int      @default(0) @map("scan_count")
+  createdAt           DateTime @default(now()) @map("created_at")
+  updatedAt           DateTime @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([companyName], name: "idx_profiles_company")
+  @@index([lat, lng], name: "idx_profiles_location")
+  @@map("profiles")
+}
+
+// ─── Card Scanning & Contacts ───────────────────────────────
+
+model ScannedCard {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  scannerUserId    BigInt    @map("scanner_user_id") @db.UnsignedBigInt
+  matchedUserId    BigInt?   @map("matched_user_id") @db.UnsignedBigInt
+  cardImageUrl     String    @map("card_image_url") @db.VarChar(500)
+  cardImageBackUrl String?   @map("card_image_back_url") @db.VarChar(500)
+  scanMethod       String    @map("scan_method") @db.VarChar(10)
+  rawOcrText       String?   @map("raw_ocr_text") @db.Text
+  firstName        String?   @map("first_name") @db.VarChar(255)
+  lastName         String?   @map("last_name") @db.VarChar(255)
+  jobTitle         String?   @map("job_title") @db.VarChar(255)
+  companyName      String?   @map("company_name") @db.VarChar(255)
+  email            String?   @db.VarChar(255)
+  phone            String?   @db.VarChar(50)
+  website          String?   @db.VarChar(500)
+  address          String?   @db.Text
+  socialLinks      Json?     @map("social_links")
+  customFields     Json?     @map("custom_fields")
+  notes            String?   @db.Text
+  tags             Json?
+  isSelfScan       Boolean   @default(false) @map("is_self_scan")
+  scanLocationLat  Decimal?  @map("scan_location_lat") @db.Decimal(10, 8)
+  scanLocationLng  Decimal?  @map("scan_location_lng") @db.Decimal(11, 8)
+  eventContext     String?   @map("event_context") @db.VarChar(255)
+  confidenceScore  Decimal?  @map("confidence_score") @db.Decimal(3, 2)
+  isConfirmed      Boolean   @default(false) @map("is_confirmed")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  scanner    User          @relation("ScannerCards", fields: [scannerUserId], references: [id], onDelete: Cascade)
+  matchedUser User?        @relation("MatchedCards", fields: [matchedUserId], references: [id], onDelete: SetNull)
+  connections Connection[]
+  eventScans  EventScan[]
+
+  @@unique([scannerUserId, email], name: "uq_scanner_email")
+  @@index([scannerUserId], name: "idx_scanned_scanner")
+  @@index([matchedUserId], name: "idx_scanned_matched")
+  @@map("scanned_cards")
+}
+
+model Connection {
+  id            BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  requesterId   BigInt   @map("requester_id") @db.UnsignedBigInt
+  receiverId    BigInt   @map("receiver_id") @db.UnsignedBigInt
+  status        String   @default("pending") @db.VarChar(10)
+  source        String   @db.VarChar(10)
+  scannedCardId BigInt?  @map("scanned_card_id") @db.UnsignedBigInt
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  requester   User         @relation("Requester", fields: [requesterId], references: [id], onDelete: Cascade)
+  receiver    User         @relation("Receiver", fields: [receiverId], references: [id], onDelete: Cascade)
+  scannedCard ScannedCard? @relation(fields: [scannedCardId], references: [id], onDelete: SetNull)
+
+  @@unique([requesterId, receiverId], name: "uq_connection")
+  @@map("connections")
+}
+
+// ─── AI Page Builder ────────────────────────────────────────
+
+model PageTemplate {
+  id              BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  slug            String   @unique @db.VarChar(100)
+  name            String   @db.VarChar(255)
+  category        String   @db.VarChar(30)
+  description     String   @db.Text
+  thumbnailUrl    String   @map("thumbnail_url") @db.VarChar(500)
+  schema          Json
+  defaultConfig   Json     @map("default_config")
+  aiPromptTemplate String  @map("ai_prompt_template") @db.Text
+  isActive        Boolean  @default(true) @map("is_active")
+  sortOrder       Int      @default(0) @map("sort_order")
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  businessPages BusinessPage[]
+
+  @@map("page_templates")
+}
+
+model BusinessPage {
+  id                   BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId               BigInt    @map("user_id") @db.UnsignedBigInt
+  templateId           BigInt    @map("template_id") @db.UnsignedBigInt
+  slug                 String    @unique @db.VarChar(100)
+  customDomain         String?   @unique @map("custom_domain") @db.VarChar(255)
+  domainVerified       Boolean   @default(false) @map("domain_verified")
+  businessName         String    @map("business_name") @db.VarChar(255)
+  tagline              String?   @db.VarChar(500)
+  pageConfig           Json      @map("page_config")
+  seoTitle             String?   @map("seo_title") @db.VarChar(255)
+  seoDescription       String?   @map("seo_description") @db.VarChar(500)
+  seoImageUrl          String?   @map("seo_image_url") @db.VarChar(500)
+  wizardAnswers        Json?     @map("wizard_answers")
+  scrapedSocialData    Json?     @map("scraped_social_data")
+  colorScheme          Json?     @map("color_scheme")
+  fontFamily           String?   @map("font_family") @db.VarChar(100)
+  isPublished          Boolean   @default(false) @map("is_published")
+  isPro                Boolean   @default(false) @map("is_pro")
+  chatbotEnabled       Boolean   @default(false) @map("chatbot_enabled")
+  chatbotKnowledgeBase Json?     @map("chatbot_knowledge_base")
+  analyticsEnabled     Boolean   @default(false) @map("analytics_enabled")
+  createdAt            DateTime  @default(now()) @map("created_at")
+  updatedAt            DateTime  @updatedAt @map("updated_at")
+  publishedAt          DateTime? @map("published_at")
+
+  user          User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  template      PageTemplate   @relation(fields: [templateId], references: [id])
+  sections      PageSection[]
+  images        PageImage[]
+  conversations Conversation[]
+  leads         Lead[]
+  analytics     PageAnalytics[]
+
+  @@index([slug], name: "idx_bp_slug")
+  @@index([customDomain], name: "idx_bp_domain")
+  @@index([userId], name: "idx_bp_user")
+  @@map("business_pages")
+}
+
+model PageSection {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  businessPageId BigInt   @map("business_page_id") @db.UnsignedBigInt
+  sectionType    String   @map("section_type") @db.VarChar(50)
+  sortOrder      Int      @map("sort_order")
+  isVisible      Boolean  @default(true) @map("is_visible")
+  config         Json
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  businessPage BusinessPage @relation(fields: [businessPageId], references: [id], onDelete: Cascade)
+
+  @@index([businessPageId, sortOrder], name: "idx_ps_page")
+  @@map("page_sections")
+}
+
+model PageImage {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  businessPageId BigInt   @map("business_page_id") @db.UnsignedBigInt
+  source         String   @db.VarChar(30)
+  originalUrl    String?  @map("original_url") @db.VarChar(500)
+  storedUrl      String   @map("stored_url") @db.VarChar(500)
+  altText        String?  @map("alt_text") @db.VarChar(255)
+  width          Int?
+  height         Int?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  businessPage BusinessPage @relation(fields: [businessPageId], references: [id], onDelete: Cascade)
+
+  @@map("page_images")
+}
+
+// ─── Social Network ─────────────────────────────────────────
+
+model Post {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId           BigInt    @map("user_id") @db.UnsignedBigInt
+  content          String    @db.Text
+  mediaUrls        Json?     @map("media_urls")
+  postType         String    @default("text") @map("post_type") @db.VarChar(10)
+  sharedPostId     BigInt?   @map("shared_post_id") @db.UnsignedBigInt
+  visibility       String    @default("public") @db.VarChar(15)
+  moderationStatus String    @default("pending") @map("moderation_status") @db.VarChar(10)
+  moderationReason String?   @map("moderation_reason") @db.VarChar(500)
+  likeCount        Int       @default(0) @map("like_count")
+  commentCount     Int       @default(0) @map("comment_count")
+  shareCount       Int       @default(0) @map("share_count")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  sharedPost Post?     @relation("SharedPost", fields: [sharedPostId], references: [id], onDelete: SetNull)
+  shares     Post[]    @relation("SharedPost")
+  comments   Comment[]
+
+  @@index([userId, createdAt(sort: Desc)], name: "idx_posts_user")
+  @@index([moderationStatus, createdAt(sort: Desc)], name: "idx_posts_feed")
+  @@map("posts")
+}
+
+model Comment {
+  id               BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  postId           BigInt    @map("post_id") @db.UnsignedBigInt
+  userId           BigInt    @map("user_id") @db.UnsignedBigInt
+  parentCommentId  BigInt?   @map("parent_comment_id") @db.UnsignedBigInt
+  content          String    @db.Text
+  moderationStatus String    @default("pending") @map("moderation_status") @db.VarChar(10)
+  createdAt        DateTime  @default(now()) @map("created_at")
+  deletedAt        DateTime? @map("deleted_at")
+
+  post          Post      @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  parentComment Comment?  @relation("ThreadedReplies", fields: [parentCommentId], references: [id], onDelete: SetNull)
+  replies       Comment[] @relation("ThreadedReplies")
+
+  @@map("comments")
+}
+
+model Like {
+  id           BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId       BigInt   @map("user_id") @db.UnsignedBigInt
+  likeableType String   @map("likeable_type") @db.VarChar(10)
+  likeableId   BigInt   @map("likeable_id") @db.UnsignedBigInt
+  createdAt    DateTime @default(now()) @map("created_at")
+
+  // Polymorphic: likeableId references posts OR comments (no DB-level FK)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, likeableType, likeableId], name: "uq_like")
+  @@map("likes")
+}
+
+// ─── Messaging ──────────────────────────────────────────────
+
+model Conversation {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  type           String   @db.VarChar(20)
+  businessPageId BigInt?  @map("business_page_id") @db.UnsignedBigInt
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  businessPage BusinessPage?            @relation(fields: [businessPageId], references: [id], onDelete: SetNull)
+  participants ConversationParticipant[]
+  messages     Message[]
+  leads        Lead[]
+
+  @@map("conversations")
+}
+
+model ConversationParticipant {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  conversationId BigInt    @map("conversation_id") @db.UnsignedBigInt
+  userId         BigInt    @map("user_id") @db.UnsignedBigInt
+  lastReadAt     DateTime? @map("last_read_at")
+  isMuted        Boolean   @default(false) @map("is_muted")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId], name: "uq_participant")
+  @@map("conversation_participants")
+}
+
+model Message {
+  id             BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  conversationId BigInt    @map("conversation_id") @db.UnsignedBigInt
+  senderId       BigInt?   @map("sender_id") @db.UnsignedBigInt
+  senderType     String    @default("user") @map("sender_type") @db.VarChar(15)
+  content        String    @db.Text
+  mediaUrls      Json?     @map("media_urls")
+  metadata       Json?
+  isEscalated    Boolean   @default(false) @map("is_escalated")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  deletedAt      DateTime? @map("deleted_at")
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User?        @relation(fields: [senderId], references: [id], onDelete: SetNull)
+
+  @@index([conversationId, createdAt(sort: Desc)], name: "idx_messages_conv")
+  @@map("messages")
+}
+
+// ─── Notifications ──────────────────────────────────────────
+
+model Notification {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId    BigInt   @map("user_id") @db.UnsignedBigInt
+  type      String   @db.VarChar(30)
+  title     String   @db.VarChar(255)
+  body      String?  @db.Text
+  data      Json?
+  isRead    Boolean  @default(false) @map("is_read")
+  channel   String   @default("web_push") @db.VarChar(20)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)], name: "idx_notif_user")
+  @@map("notifications")
+}
+
+model PushSubscription {
+  id        BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  userId    BigInt   @map("user_id") @db.UnsignedBigInt
+  endpoint  String   @db.Text
+  keys      Json
+  userAgent String?  @map("user_agent") @db.VarChar(500)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("push_subscriptions")
+}
+
+// ─── Events ─────────────────────────────────────────────────
+
+model Event {
+  id          BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name        String    @db.VarChar(255)
+  description String?   @db.Text
+  location    String?   @db.VarChar(500)
+  lat         Decimal?  @db.Decimal(10, 8)
+  lng         Decimal?  @db.Decimal(11, 8)
+  startsAt    DateTime? @map("starts_at")
+  endsAt      DateTime? @map("ends_at")
+  source      String    @default("manual") @db.VarChar(20)
+  externalUrl String?   @map("external_url") @db.VarChar(500)
+  createdBy   BigInt?   @map("created_by") @db.UnsignedBigInt
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  creator    User?       @relation(fields: [createdBy], references: [id], onDelete: SetNull)
+  eventScans EventScan[]
+
+  @@map("events")
+}
+
+model EventScan {
+  id            BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  eventId       BigInt   @map("event_id") @db.UnsignedBigInt
+  scannedCardId BigInt   @map("scanned_card_id") @db.UnsignedBigInt
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  event       Event       @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  scannedCard ScannedCard @relation(fields: [scannedCardId], references: [id], onDelete: Cascade)
+
+  @@map("event_scans")
+}
+
+// ─── Subscriptions & Leads ──────────────────────────────────
+
+model Subscription {
+  id                     BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  userId                 BigInt    @map("user_id") @db.UnsignedBigInt
+  tier                   String    @default("pro") @db.VarChar(10)
+  status                 String    @default("active") @db.VarChar(15)
+  paymentProvider        String    @map("payment_provider") @db.VarChar(10)
+  externalSubscriptionId String    @map("external_subscription_id") @db.VarChar(255)
+  currentPeriodStart     DateTime  @map("current_period_start")
+  currentPeriodEnd       DateTime  @map("current_period_end")
+  canceledAt             DateTime? @map("canceled_at")
+  createdAt              DateTime  @default(now()) @map("created_at")
+  updatedAt              DateTime  @updatedAt @map("updated_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("subscriptions")
+}
+
+model Lead {
+  id             BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  businessPageId BigInt   @map("business_page_id") @db.UnsignedBigInt
+  name           String?  @db.VarChar(255)
+  email          String?  @db.VarChar(255)
+  phone          String?  @db.VarChar(50)
+  message        String?  @db.Text
+  source         String   @db.VarChar(15)
+  conversationId BigInt?  @map("conversation_id") @db.UnsignedBigInt
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  businessPage BusinessPage  @relation(fields: [businessPageId], references: [id], onDelete: Cascade)
+  conversation Conversation? @relation(fields: [conversationId], references: [id], onDelete: SetNull)
+
+  @@map("leads")
+}
+
+model PageAnalytics {
+  id                   BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  businessPageId       BigInt   @map("business_page_id") @db.UnsignedBigInt
+  date                 DateTime @db.Date
+  pageViews            Int      @default(0) @map("page_views")
+  uniqueVisitors       Int      @default(0) @map("unique_visitors")
+  chatbotConversations Int      @default(0) @map("chatbot_conversations")
+  leadsGenerated       Int      @default(0) @map("leads_generated")
+  qrScans              Int      @default(0) @map("qr_scans")
+
+  businessPage BusinessPage @relation(fields: [businessPageId], references: [id], onDelete: Cascade)
+
+  @@unique([businessPageId, date], name: "uq_analytics_date")
+  @@map("page_analytics")
+}
