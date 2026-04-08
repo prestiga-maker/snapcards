@@ -52,6 +52,11 @@ function timeAgo(dateStr: string, t: ReturnType<typeof useTranslations>): string
   return t('daysAgo', { count: days });
 }
 
+function formatCount(n: number): string {
+  if (n >= 1000) return `${(n / 1000).toFixed(1)}k`;
+  return n > 0 ? n.toString() : '';
+}
+
 export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
   const t = useTranslations('feed');
   const router = useRouter();
@@ -67,7 +72,6 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
   async function handleLike() {
     const prevLiked = liked;
     const prevCount = likeCount;
-    // Optimistic update
     setLiked(!liked);
     setLikeCount(liked ? likeCount - 1 : likeCount + 1);
 
@@ -110,23 +114,26 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
   const isPending = post.moderationStatus === 'pending';
 
   return (
-    <div className={`rounded-xl border border-gray-200 p-4 dark:border-gray-700 ${isPending ? 'opacity-60' : ''}`}>
+    <article
+      className={`rounded-2xl p-5 shadow-ambient transition-shadow hover:shadow-ambient-lg ${isPending ? 'opacity-60' : ''}`}
+      style={{ background: 'var(--surface-container-lowest)' }}
+    >
       {/* Header */}
       <div className="flex items-start justify-between">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-blue-400 to-blue-600 font-bold text-white">
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-container))' }}>
             {post.user.avatarUrl ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={post.user.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover" />
+              <img src={post.user.avatarUrl} alt="" className="h-11 w-11 rounded-full object-cover" />
             ) : (
               post.user.displayName[0]?.toUpperCase()
             )}
           </div>
           <div>
-            <p className="font-semibold">{post.user.displayName}</p>
-            <p className="text-xs text-gray-400">
+            <p className="font-semibold" style={{ color: 'var(--on-surface)' }}>{post.user.displayName}</p>
+            <p className="text-xs" style={{ color: 'var(--on-surface-variant)' }}>
               {timeAgo(post.createdAt, t)}
-              {post.visibility === 'connections' && ' · 🔗'}
+              {post.visibility === 'connections' && ' · Connections'}
             </p>
           </div>
         </div>
@@ -135,17 +142,18 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
           <div className="relative">
             <button
               onClick={() => setShowMenu(!showMenu)}
-              className="rounded-lg p-1.5 text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-[var(--surface-container-low)]"
+              style={{ color: 'var(--on-surface-variant)' }}
             >
-              ⋮
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="12" cy="19" r="2"/></svg>
             </button>
             {showMenu && (
               <>
                 <div className="fixed inset-0 z-10" onClick={() => setShowMenu(false)} />
-                <div className="absolute end-0 top-8 z-20 min-w-[130px] rounded-lg border border-gray-200 bg-white py-1 shadow-lg dark:border-gray-700 dark:bg-gray-800">
+                <div className="absolute end-0 top-9 z-20 min-w-[140px] rounded-xl p-1 shadow-ambient" style={{ background: 'var(--surface-container-lowest)' }}>
                   <button
                     onClick={() => { setShowMenu(false); handleDelete(); }}
-                    className="w-full px-3 py-1.5 text-start text-sm text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-950"
+                    className="w-full rounded-lg px-3 py-2 text-start text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
                   >
                     {t('deletePost')}
                   </button>
@@ -158,7 +166,7 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
 
       {/* Moderation notice */}
       {isPending && (
-        <div className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950 dark:text-amber-300">
+        <div className="mt-3 rounded-xl px-4 py-2.5 text-xs font-medium" style={{ background: 'var(--surface-container-low)', color: 'var(--on-surface-variant)' }}>
           {t('pendingModeration')}
         </div>
       )}
@@ -166,21 +174,21 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
       {/* Share context */}
       {post.postType === 'share' && post.sharedPost && (
         <>
-          {post.content && <p className="mt-3 whitespace-pre-wrap text-sm">{post.content}</p>}
-          <div className="mt-3 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+          {post.content && <p className="mt-4 whitespace-pre-wrap" style={{ color: 'var(--on-surface)' }}>{post.content}</p>}
+          <div className="mt-3 rounded-xl p-4" style={{ background: 'var(--surface-container-low)' }}>
             <div className="mb-2 flex items-center gap-2">
-              <div className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-gray-300 to-gray-500 text-xs font-bold text-white">
+              <div className="flex h-7 w-7 items-center justify-center rounded-full text-xs font-bold text-white" style={{ background: 'linear-gradient(135deg, var(--primary), var(--primary-container))' }}>
                 {post.sharedPost.user.displayName[0]?.toUpperCase()}
               </div>
-              <span className="text-sm font-medium">{post.sharedPost.user.displayName}</span>
-              <span className="text-xs text-gray-400">{timeAgo(post.sharedPost.createdAt, t)}</span>
+              <span className="text-sm font-medium" style={{ color: 'var(--on-surface)' }}>{post.sharedPost.user.displayName}</span>
+              <span className="text-xs" style={{ color: 'var(--on-surface-variant)' }}>{timeAgo(post.sharedPost.createdAt, t)}</span>
             </div>
-            <p className="whitespace-pre-wrap text-sm">{post.sharedPost.content}</p>
+            <p className="whitespace-pre-wrap text-sm" style={{ color: 'var(--on-surface)' }}>{post.sharedPost.content}</p>
             {Array.isArray(post.sharedPost.mediaUrls) && post.sharedPost.mediaUrls.length > 0 && (
-              <div className="mt-2 flex gap-2 overflow-x-auto">
+              <div className="mt-3 flex gap-2 overflow-x-auto">
                 {post.sharedPost.mediaUrls.map((url: string, i: number) => (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img key={i} src={url} alt="" className="h-32 rounded-lg object-cover" />
+                  <img key={i} src={url} alt="" className="h-32 rounded-xl object-cover" />
                 ))}
               </div>
             )}
@@ -191,73 +199,89 @@ export function PostCard({ post, onDelete, onLikeToggle }: PostCardProps) {
       {/* Regular post content */}
       {post.postType !== 'share' && (
         <>
-          <p className="mt-3 whitespace-pre-wrap text-sm">{post.content}</p>
+          <p className="mt-4 whitespace-pre-wrap text-[15px] leading-relaxed" style={{ color: 'var(--on-surface)' }}>{post.content}</p>
           {mediaUrls.length > 0 && (
-            <div className="mt-3 flex gap-2 overflow-x-auto">
-              {mediaUrls.map((url, i) => (
+            <div className="mt-4 overflow-hidden rounded-xl">
+              {mediaUrls.length === 1 ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img key={i} src={url} alt="" className="max-h-64 rounded-lg object-cover" />
-              ))}
+                <img src={mediaUrls[0]} alt="" className="w-full rounded-xl object-cover" style={{ maxHeight: '360px' }} />
+              ) : (
+                <div className="flex gap-2 overflow-x-auto">
+                  {mediaUrls.map((url, i) => (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img key={i} src={url} alt="" className="h-48 rounded-xl object-cover" />
+                  ))}
+                </div>
+              )}
             </div>
           )}
         </>
       )}
 
-      {/* Action bar */}
-      <div className="mt-3 flex items-center gap-1 border-t border-gray-100 pt-3 dark:border-gray-800">
+      {/* Action bar — no border, spacing only */}
+      <div className="mt-4 flex items-center gap-1 pt-1">
         <button
           onClick={handleLike}
-          className={`flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium transition-colors ${
-            liked
-              ? 'text-blue-600 dark:text-blue-400'
-              : 'text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800'
-          }`}
+          className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors"
+          style={{ color: liked ? 'var(--primary)' : 'var(--on-surface-variant)' }}
         >
-          {liked ? '❤️' : '🤍'} {likeCount > 0 ? likeCount : ''} {liked ? t('liked') : t('like')}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill={liked ? 'var(--primary)' : 'none'} stroke={liked ? 'var(--primary)' : 'currentColor'} strokeWidth="1.8">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          {formatCount(likeCount)}
         </button>
 
         <button
           onClick={() => router.push(`/feed/${post.id}`)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors"
+          style={{ color: 'var(--on-surface-variant)' }}
         >
-          💬 {post.commentCount > 0 ? post.commentCount : ''} {t('comment')}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+          </svg>
+          {formatCount(post.commentCount)}
         </button>
 
         <button
           onClick={() => setShowShare(!showShare)}
-          className="flex flex-1 items-center justify-center gap-1.5 rounded-lg py-2 text-sm font-medium text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+          className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-medium transition-colors"
+          style={{ color: 'var(--on-surface-variant)' }}
         >
-          🔄 {post.shareCount > 0 ? post.shareCount : ''} {t('share')}
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8" /><polyline points="16 6 12 2 8 6" /><line x1="12" y1="2" x2="12" y2="15" />
+          </svg>
         </button>
       </div>
 
       {/* Share dialog */}
       {showShare && (
-        <div className="mt-2 space-y-2 rounded-lg border border-gray-200 p-3 dark:border-gray-700">
+        <div className="mt-3 space-y-3 rounded-xl p-4" style={{ background: 'var(--surface-container-low)' }}>
           <textarea
             value={shareComment}
             onChange={(e) => setShareComment(e.target.value)}
             placeholder={t('addShareComment')}
             rows={2}
-            className="w-full resize-none rounded-lg border border-gray-300 p-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
+            className="w-full resize-none rounded-xl p-3 text-sm focus:outline-none"
+            style={{ background: 'var(--surface-container-lowest)', color: 'var(--on-surface)' }}
           />
           <div className="flex justify-end gap-2">
             <button
               onClick={() => setShowShare(false)}
-              className="rounded-lg px-3 py-1.5 text-sm text-gray-500"
+              className="rounded-xl px-4 py-2 text-sm font-medium"
+              style={{ color: 'var(--on-surface-variant)' }}
             >
               Cancel
             </button>
             <button
               onClick={handleShare}
               disabled={sharing}
-              className="rounded-lg bg-blue-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="gradient-primary rounded-xl px-5 py-2 text-sm font-medium text-white disabled:opacity-50"
             >
               {t('share')}
             </button>
           </div>
         </div>
       )}
-    </div>
+    </article>
   );
 }

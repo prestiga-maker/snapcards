@@ -1,4 +1,5 @@
-import { Navbar } from '@/components/layout/Navbar';
+import { DashboardHeader } from '@/components/layout/DashboardHeader';
+import { SnapTray } from '@/components/layout/SnapTray';
 import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { prisma } from '@/lib/db';
 
@@ -23,11 +24,12 @@ export default async function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen">
-      <Navbar user={user} />
-      <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8">
+    <div className="min-h-screen" style={{ background: 'var(--surface)' }}>
+      <DashboardHeader user={user} />
+      <main className="mx-auto max-w-lg px-4 pb-safe-nav pt-4">
         {children}
       </main>
+      <SnapTray />
     </div>
   );
 }

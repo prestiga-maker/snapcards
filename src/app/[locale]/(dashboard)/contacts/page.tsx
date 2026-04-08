@@ -30,7 +30,6 @@ type SortOption = 'date' | 'name' | 'company';
 
 export default function ContactsPage() {
   const t = useTranslations('contacts');
-  const tScan = useTranslations('scan');
   const router = useRouter();
 
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -72,73 +71,58 @@ export default function ContactsPage() {
     setTotal((prev) => prev - 1);
   }
 
-  const sortOptions: { key: SortOption; label: string }[] = [
-    { key: 'date', label: t('sortDate') },
-    { key: 'name', label: t('sortName') },
-    { key: 'company', label: t('sortCompany') },
+  const filterOptions: { key: SortOption; label: string }[] = [
+    { key: 'date', label: t('filterAll') },
+    { key: 'name', label: t('filterRecent') },
+    { key: 'company', label: t('filterFavorites') },
   ];
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">{t('title')}</h1>
-        <button
-          onClick={() => router.push('/scan')}
-          className="rounded-xl bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
-        >
-          {tScan('title')}
-        </button>
+    <div className="space-y-5">
+      {/* Search */}
+      <div className="relative">
+        <svg className="absolute start-4 top-1/2 -translate-y-1/2" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--on-surface-variant)" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          placeholder={t('search')}
+          className="w-full rounded-2xl py-3.5 pe-4 ps-12 text-sm focus:outline-none"
+          style={{ background: 'var(--surface-container-low)', color: 'var(--on-surface)' }}
+        />
       </div>
 
-      {/* Search and sort bar */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div className="relative flex-1">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder={t('search')}
-            className="w-full rounded-xl border border-gray-300 py-2.5 pe-4 ps-10 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-800"
-          />
-          <span className="absolute start-3 top-1/2 -translate-y-1/2 text-gray-400">🔍</span>
-        </div>
-        <div className="flex gap-1 rounded-lg bg-gray-100 p-1 dark:bg-gray-800">
-          {sortOptions.map((opt) => (
-            <button
-              key={opt.key}
-              onClick={() => { setSort(opt.key); setPage(1); }}
-              className={`rounded-md px-3 py-1.5 text-xs font-medium transition-colors ${
-                sort === opt.key
-                  ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                  : 'text-gray-500 hover:text-gray-700 dark:text-gray-400'
-              }`}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
+      {/* Filter pills */}
+      <div className="flex gap-2">
+        {filterOptions.map((opt) => (
+          <button
+            key={opt.key}
+            onClick={() => { setSort(opt.key); setPage(1); }}
+            className="rounded-2xl px-5 py-2 text-sm font-medium transition-colors"
+            style={{
+              background: sort === opt.key ? 'var(--primary)' : 'var(--surface-container-low)',
+              color: sort === opt.key ? 'var(--on-primary)' : 'var(--on-surface-variant)',
+            }}
+          >
+            {opt.label}
+          </button>
+        ))}
       </div>
-
-      {/* Total count */}
-      {!loading && total > 0 && (
-        <p className="text-sm text-gray-500">
-          {total} contact{total !== 1 ? 's' : ''}
-        </p>
-      )}
 
       {/* Contact list */}
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full" style={{ border: '3px solid var(--surface-container-low)', borderTopColor: 'var(--primary)' }} />
         </div>
       ) : contacts.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 p-12 text-center text-gray-500 dark:border-gray-800">
-          <div className="mb-3 text-4xl">👥</div>
-          <p className="font-medium">{t('noContacts')}</p>
-          <p className="mt-1 text-sm">{t('noContactsHint')}</p>
+        <div className="rounded-2xl p-12 text-center" style={{ background: 'var(--surface-container-lowest)' }}>
+          <p className="text-lg font-semibold" style={{ color: 'var(--on-surface)' }}>{t('noContacts')}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--on-surface-variant)' }}>{t('noContactsHint')}</p>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="space-y-3">
           {contacts.map((contact) => (
             <ContactCard
               key={contact.id}
@@ -151,21 +135,23 @@ export default function ContactsPage() {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2">
+        <div className="flex items-center justify-center gap-3 py-2">
           <button
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page <= 1}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-gray-600"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-sm disabled:opacity-30"
+            style={{ background: 'var(--surface-container-low)' }}
           >
             ‹
           </button>
-          <span className="text-sm text-gray-500">
+          <span className="text-sm font-medium" style={{ color: 'var(--on-surface-variant)' }}>
             {page} / {totalPages}
           </span>
           <button
             onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
             disabled={page >= totalPages}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm disabled:opacity-50 dark:border-gray-600"
+            className="flex h-9 w-9 items-center justify-center rounded-full text-sm disabled:opacity-30"
+            style={{ background: 'var(--surface-container-low)' }}
           >
             ›
           </button>

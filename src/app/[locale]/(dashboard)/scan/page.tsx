@@ -14,7 +14,6 @@ interface ScanResult {
   scanId: string;
   imageUrl: string;
   backImageUrl?: string | null;
-  // QR scan results come with contact info directly
   contact?: {
     scanId: string;
     firstName?: string;
@@ -31,11 +30,11 @@ export default function ScanPage() {
   const [activeTab, setActiveTab] = useState<ScanTab>('photo');
   const [scanResult, setScanResult] = useState<ScanResult | null>(null);
 
-  const tabs: { key: ScanTab; label: string; icon: string }[] = [
-    { key: 'photo', label: t('tabPhoto'), icon: '📷' },
-    { key: 'upload', label: t('tabUpload'), icon: '📁' },
-    { key: 'qr', label: t('tabQR'), icon: '🔲' },
-    { key: 'nfc', label: t('tabNFC'), icon: '📡' },
+  const tabs: { key: ScanTab; label: string }[] = [
+    { key: 'photo', label: t('tabPhoto') },
+    { key: 'upload', label: t('tabUpload') },
+    { key: 'qr', label: t('tabQR') },
+    { key: 'nfc', label: t('tabNFC') },
   ];
 
   function handleScanComplete(result: ScanResult) {
@@ -48,17 +47,18 @@ export default function ScanPage() {
 
   // If we have a scan result, show confirmation UI
   if (scanResult) {
-    // QR scans that created a connection directly skip confirmation
     if (scanResult.connectionCreated) {
       return (
         <div className="mx-auto max-w-lg space-y-6 text-center">
-          <div className="rounded-2xl border border-green-200 bg-green-50 p-8 dark:border-green-800 dark:bg-green-950">
-            <div className="mb-4 text-5xl">✅</div>
-            <h2 className="mb-2 text-xl font-bold text-green-800 dark:text-green-200">
+          <div className="rounded-2xl p-10 shadow-ambient" style={{ background: 'var(--surface-container-lowest)' }}>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: '#dcfce7' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </div>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--on-surface)' }}>
               {t('connectionCreated')}
             </h2>
             {scanResult.contact && (
-              <p className="text-green-700 dark:text-green-300">
+              <p className="mt-2" style={{ color: 'var(--on-surface-variant)' }}>
                 {scanResult.contact.firstName} {scanResult.contact.lastName}
                 {scanResult.contact.companyName && (
                   <span className="block text-sm opacity-75">
@@ -71,7 +71,8 @@ export default function ScanPage() {
           </div>
           <button
             onClick={handleReset}
-            className="rounded-lg bg-gray-100 px-6 py-2 font-medium hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+            className="rounded-2xl px-8 py-3 font-medium transition-colors"
+            style={{ background: 'var(--surface-container-low)', color: 'var(--on-surface)' }}
           >
             {t('title')}
           </button>
@@ -79,22 +80,24 @@ export default function ScanPage() {
       );
     }
 
-    // Self-scan notification
     if (scanResult.isSelfScan) {
       return (
         <div className="mx-auto max-w-lg space-y-6 text-center">
-          <div className="rounded-2xl border border-blue-200 bg-blue-50 p-8 dark:border-blue-800 dark:bg-blue-950">
-            <div className="mb-4 text-5xl">🪞</div>
-            <h2 className="mb-2 text-xl font-bold text-blue-800 dark:text-blue-200">
+          <div className="rounded-2xl p-10 shadow-ambient" style={{ background: 'var(--surface-container-lowest)' }}>
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full" style={{ background: 'var(--surface-container-low)' }}>
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            </div>
+            <h2 className="text-xl font-bold" style={{ color: 'var(--on-surface)' }}>
               {t('selfScanDetected')}
             </h2>
-            <p className="text-blue-700 dark:text-blue-300">
+            <p className="mt-2" style={{ color: 'var(--on-surface-variant)' }}>
               {t('selfScanHint')}
             </p>
           </div>
           <button
             onClick={handleReset}
-            className="rounded-lg bg-gray-100 px-6 py-2 font-medium hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700"
+            className="rounded-2xl px-8 py-3 font-medium transition-colors"
+            style={{ background: 'var(--surface-container-low)', color: 'var(--on-surface)' }}
           >
             {t('title')}
           </button>
@@ -102,7 +105,6 @@ export default function ScanPage() {
       );
     }
 
-    // Photo/upload scans go to confirmation with OCR
     return (
       <ScanConfirmation
         scanId={scanResult.scanId}
@@ -114,23 +116,21 @@ export default function ScanPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <h1 className="text-2xl font-bold">{t('title')}</h1>
-
-      {/* Tab bar */}
-      <div className="flex gap-1 rounded-xl bg-gray-100 p-1 dark:bg-gray-800">
+    <div className="space-y-5">
+      {/* Tab bar — pill style */}
+      <div className="flex gap-1 rounded-2xl p-1" style={{ background: 'var(--surface-container-low)' }}>
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex flex-1 items-center justify-center gap-2 rounded-lg py-2.5 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? 'bg-white text-gray-900 shadow-sm dark:bg-gray-700 dark:text-white'
-                : 'text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200'
-            }`}
+            className="flex-1 rounded-xl py-2.5 text-sm font-medium transition-all"
+            style={{
+              background: activeTab === tab.key ? 'var(--surface-container-lowest)' : 'transparent',
+              color: activeTab === tab.key ? 'var(--primary)' : 'var(--on-surface-variant)',
+              boxShadow: activeTab === tab.key ? '0 2px 8px rgba(20,27,43,0.06)' : 'none',
+            }}
           >
-            <span>{tab.icon}</span>
-            <span className="hidden sm:inline">{tab.label}</span>
+            {tab.label}
           </button>
         ))}
       </div>
@@ -149,6 +149,14 @@ export default function ScanPage() {
         {activeTab === 'nfc' && (
           <NFCReader onScanComplete={handleScanComplete} />
         )}
+      </div>
+
+      {/* Tip */}
+      <div className="flex items-center justify-center gap-2 py-2">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="var(--primary)" stroke="none"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+        <span className="text-xs" style={{ color: 'var(--on-surface-variant)' }}>
+          {t('goodLightingTip')}
+        </span>
       </div>
     </div>
   );

@@ -30,10 +30,10 @@ const SECTION_MAP: Record<string, React.ComponentType<{ config: any; colorScheme
   faq: FAQSection,
   hours: HoursSection,
   team: TeamSection,
-  practitioners: TeamSection, // Reuse team layout for practitioners
+  practitioners: TeamSection,
   case_studies: CaseStudiesSection,
   featured_products: FeaturedProductsSection,
-  product_grid: FeaturedProductsSection, // Reuse products layout
+  product_grid: FeaturedProductsSection,
   portfolio_grid: PortfolioGridSection,
   skills: SkillsSection,
   featured_listings: FeaturedListingsSection,
@@ -52,39 +52,45 @@ export function TemplateRenderer({ config }: TemplateRendererProps) {
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
-    <div dir={direction} style={{ fontFamily: config.global?.fontFamily || 'Inter, system-ui, sans-serif' }}>
+    <div
+      dir={direction}
+      style={{
+        fontFamily: config.global?.fontFamily || 'Inter, system-ui, sans-serif',
+        background: '#f9f9ff',
+        color: '#141b2b',
+      }}
+    >
       {/* Header */}
       {config.global?.logoUrl && (
-        <header className="flex items-center justify-between px-6 py-4" style={{ backgroundColor: colorScheme.primary }}>
+        <header className="flex items-center justify-between px-6 py-4" style={{ background: 'rgba(255,255,255,0.7)', backdropFilter: 'blur(12px)' }}>
           <Image src={config.global.logoUrl} alt="Logo" width={120} height={40} className="h-10 w-auto" unoptimized />
         </header>
       )}
 
-      {/* Sections */}
-      {visibleSections.map((section) => {
-        const SectionComponent = SECTION_MAP[section.type];
-        if (!SectionComponent) {
+      {/* Sections — no separators, spacing-based (§5) */}
+      <div className="space-y-0">
+        {visibleSections.map((section) => {
+          const SectionComponent = SECTION_MAP[section.type];
+          if (!SectionComponent) {
+            return (
+              <div key={section.id} className="p-4 text-center text-sm" style={{ background: '#fef3c7', color: '#92400e' }}>
+                Unknown section type: {section.type}
+              </div>
+            );
+          }
           return (
-            <div key={section.id} className="bg-yellow-50 p-4 text-center text-sm text-yellow-700">
-              Unknown section type: {section.type}
-            </div>
+            <SectionComponent
+              key={section.id}
+              config={section.config}
+              colorScheme={colorScheme}
+            />
           );
-        }
-        return (
-          <SectionComponent
-            key={section.id}
-            config={section.config}
-            colorScheme={colorScheme}
-          />
-        );
-      })}
+        })}
+      </div>
 
       {/* Footer */}
-      <footer
-        className="px-6 py-8 text-center text-sm"
-        style={{ backgroundColor: colorScheme.primary, color: colorScheme.primary === '#ffffff' ? '#999' : '#ffffff80' }}
-      >
-        <p>Powered by SNAP.Cards</p>
+      <footer className="px-6 py-8 text-center text-xs" style={{ background: '#f1f3ff', color: '#464555' }}>
+        <p>Powered by <span style={{ color: '#3525cd', fontWeight: 600 }}>SNAP.Cards</span></p>
       </footer>
     </div>
   );

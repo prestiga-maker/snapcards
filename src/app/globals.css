@@ -1,38 +1,111 @@
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-  --color-primary: #6366f1;
-  --color-primary-dark: #4f46e5;
-  --color-accent: #f59e0b;
+  /* ── Surface Architecture (DESIGN.md §2) ── */
+  --surface: #f9f9ff;
+  --surface-container-low: #f1f3ff;
+  --surface-container-lowest: #ffffff;
+  --surface-bright: #f9f9ff;
+
+  /* ── Brand Palette ── */
+  --primary: #3525cd;
+  --primary-container: #4f46e5;
+  --secondary: #4b41e1;
+  --on-primary: #ffffff;
+  --on-surface: #141b2b;
+  --on-surface-variant: #464555;
+  --outline-variant: #c7c4d8;
+
+  /* ── Ambient Shadow (§4) ── */
+  --shadow-ambient: rgba(20, 27, 43, 0.06);
+  --shadow-ambient-lg: rgba(20, 27, 43, 0.04);
+
+  /* ── Legacy compat ── */
+  --background: var(--surface);
+  --foreground: var(--on-surface);
+  --color-primary: var(--primary);
+  --color-primary-dark: var(--primary-container);
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-surface: var(--surface);
+  --color-surface-low: var(--surface-container-low);
+  --color-surface-lowest: var(--surface-container-lowest);
+  --color-primary: var(--primary);
+  --color-primary-container: var(--primary-container);
+  --color-secondary: var(--secondary);
+  --color-on-primary: var(--on-primary);
+  --color-on-surface: var(--on-surface);
+  --color-on-surface-variant: var(--on-surface-variant);
+  --color-outline-variant: var(--outline-variant);
   --font-sans: var(--font-inter);
   --font-sans-he: var(--font-heebo);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
-}
+/* ── No dark mode override — light-only editorial palette ── */
 
 body {
-  background: var(--background);
-  color: var(--foreground);
+  background: var(--surface);
+  color: var(--on-surface);
 }
 
 /* Font family based on locale */
 [lang="en"] body { font-family: var(--font-inter), system-ui, sans-serif; }
 [lang="he"] body { font-family: var(--font-heebo), system-ui, sans-serif; }
 
-/* Focus styles */
+/* ── Focus styles ── */
 *:focus-visible {
-  outline: 2px solid var(--color-primary);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+/* ── Editorial Typography (§3) ── */
+.text-display {
+  letter-spacing: -0.02em;
+  font-weight: 800;
+  color: var(--on-surface);
+}
+
+/* ── Ambient Shadows (§4) ── */
+.shadow-ambient {
+  box-shadow: 0 8px 32px var(--shadow-ambient);
+}
+.shadow-ambient-lg {
+  box-shadow: 0 16px 64px var(--shadow-ambient-lg);
+}
+
+/* ── Ghost Border (§4) ── */
+.ghost-border {
+  border: 1px solid rgba(199, 196, 216, 0.2);
+}
+
+/* ── Glassmorphism (§2) ── */
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ── Gradient CTA (§2) ── */
+.gradient-primary {
+  background: linear-gradient(135deg, var(--primary), var(--primary-container));
+}
+
+/* ── Bottom nav safe area ── */
+.pb-safe-nav {
+  padding-bottom: calc(5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ── Scrollbar styling ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--outline-variant);
+  border-radius: 3px;
 }

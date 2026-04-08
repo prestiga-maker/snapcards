@@ -34,6 +34,14 @@ interface Post {
   } | null;
 }
 
+function formatDate(): string {
+  return new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    month: 'short',
+    day: 'numeric',
+  });
+}
+
 export default function FeedPage() {
   const t = useTranslations('feed');
   const [posts, setPosts] = useState<Post[]>([]);
@@ -105,24 +113,27 @@ export default function FeedPage() {
   }
 
   return (
-    <div className="mx-auto max-w-2xl space-y-4">
-      <h1 className="text-2xl font-bold">{t('title')}</h1>
+    <div className="space-y-5">
+      {/* Editorial date header */}
+      <div>
+        <p className="text-sm" style={{ color: 'var(--on-surface-variant)' }}>{formatDate()}</p>
+        <h1 className="text-display text-2xl sm:text-3xl">{t('dailySnap')}</h1>
+      </div>
 
       <PostComposer onPostCreated={handlePostCreated} />
 
       {loading ? (
-        <div className="flex justify-center py-12">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+        <div className="flex justify-center py-16">
+          <div className="h-8 w-8 animate-spin rounded-full" style={{ border: '3px solid var(--surface-container-low)', borderTopColor: 'var(--primary)' }} />
         </div>
       ) : posts.length === 0 ? (
-        <div className="rounded-xl border border-gray-200 p-12 text-center text-gray-500 dark:border-gray-800">
-          <div className="mb-3 text-4xl">📝</div>
-          <p className="font-medium">{t('noPostsYet')}</p>
-          <p className="mt-1 text-sm">{t('noPostsHint')}</p>
+        <div className="rounded-2xl p-12 text-center" style={{ background: 'var(--surface-container-lowest)' }}>
+          <p className="text-lg font-semibold" style={{ color: 'var(--on-surface)' }}>{t('noPostsYet')}</p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--on-surface-variant)' }}>{t('noPostsHint')}</p>
         </div>
       ) : (
         <>
-          <div className="space-y-4">
+          <div className="space-y-6">
             {posts.map((post) => (
               <PostCard
                 key={post.id}
@@ -138,7 +149,7 @@ export default function FeedPage() {
 
           {loadingMore && (
             <div className="flex justify-center py-4">
-              <div className="h-6 w-6 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600" />
+              <div className="h-6 w-6 animate-spin rounded-full" style={{ border: '3px solid var(--surface-container-low)', borderTopColor: 'var(--primary)' }} />
             </div>
           )}
         </>

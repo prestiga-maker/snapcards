@@ -85,26 +85,28 @@ export function PostComposer({ onPostCreated }: PostComposerProps) {
   }
 
   return (
-    <div className="rounded-xl border border-gray-200 p-4 dark:border-gray-700">
+    <div className="rounded-2xl p-4 shadow-ambient" style={{ background: 'var(--surface-container-lowest)' }}>
       <textarea
         value={content}
         onChange={(e) => setContent(e.target.value)}
         placeholder={t('newPost')}
         rows={3}
         maxLength={5000}
-        className="w-full resize-none rounded-lg border-0 bg-gray-50 p-3 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 dark:bg-gray-800"
+        className="w-full resize-none rounded-xl p-3 text-sm focus:outline-none"
+        style={{ background: 'var(--surface-container-low)', color: 'var(--on-surface)' }}
       />
 
       {/* Media previews */}
       {mediaUrls.length > 0 && (
-        <div className="mt-2 flex flex-wrap gap-2">
+        <div className="mt-3 flex flex-wrap gap-2">
           {mediaUrls.map((url, i) => (
             <div key={i} className="relative">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={url} alt="" className="h-20 w-20 rounded-lg object-cover" />
+              <img src={url} alt="" className="h-20 w-20 rounded-xl object-cover" />
               <button
                 onClick={() => setMediaUrls((prev) => prev.filter((_, idx) => idx !== i))}
-                className="absolute -end-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-xs text-white"
+                className="absolute -end-1 -top-1 flex h-5 w-5 items-center justify-center rounded-full text-xs font-bold text-white"
+                style={{ background: 'var(--primary)' }}
               >
                 ×
               </button>
@@ -115,12 +117,16 @@ export function PostComposer({ onPostCreated }: PostComposerProps) {
 
       {/* Actions bar */}
       <div className="mt-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-container-low)]"
+            style={{ color: 'var(--on-surface-variant)' }}
           >
-            📷 {t('addPhoto')}
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+            </svg>
+            {t('addPhoto')}
           </button>
           <input
             ref={fileInputRef}
@@ -130,26 +136,32 @@ export function PostComposer({ onPostCreated }: PostComposerProps) {
             onChange={handleImageUpload}
           />
 
-          {/* Visibility toggle */}
           <button
             onClick={() => setShowOptions(!showOptions)}
-            className="rounded-lg px-3 py-1.5 text-sm text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800"
+            className="flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm transition-colors hover:bg-[var(--surface-container-low)]"
+            style={{ color: 'var(--on-surface-variant)' }}
           >
-            {visibility === 'public' ? '🌐' : '🔗'} {visibility === 'public' ? t('public') : t('connectionsOnly')}
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10" /><line x1="2" y1="12" x2="22" y2="12" /><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+            </svg>
+            {visibility === 'public' ? t('public') : t('connectionsOnly')}
           </button>
+
           {showOptions && (
-            <div className="flex gap-1 rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
+            <div className="flex gap-0.5 rounded-xl p-0.5" style={{ background: 'var(--surface-container-low)' }}>
               <button
                 onClick={() => { setVisibility('public'); setShowOptions(false); }}
-                className={`rounded-md px-2 py-1 text-xs ${visibility === 'public' ? 'bg-white shadow-sm dark:bg-gray-700' : ''}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${visibility === 'public' ? 'shadow-ambient' : ''}`}
+                style={{ background: visibility === 'public' ? 'var(--surface-container-lowest)' : 'transparent' }}
               >
-                🌐 {t('public')}
+                {t('public')}
               </button>
               <button
                 onClick={() => { setVisibility('connections'); setShowOptions(false); }}
-                className={`rounded-md px-2 py-1 text-xs ${visibility === 'connections' ? 'bg-white shadow-sm dark:bg-gray-700' : ''}`}
+                className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${visibility === 'connections' ? 'shadow-ambient' : ''}`}
+                style={{ background: visibility === 'connections' ? 'var(--surface-container-lowest)' : 'transparent' }}
               >
-                🔗 {t('connectionsOnly')}
+                {t('connectionsOnly')}
               </button>
             </div>
           )}
@@ -158,7 +170,7 @@ export function PostComposer({ onPostCreated }: PostComposerProps) {
         <button
           onClick={handlePost}
           disabled={posting || (!content.trim() && mediaUrls.length === 0)}
-          className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+          className="gradient-primary rounded-xl px-5 py-2 text-sm font-semibold text-white disabled:opacity-50"
         >
           {posting ? t('posting') : t('post')}
         </button>

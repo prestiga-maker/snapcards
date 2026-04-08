@@ -17,13 +17,15 @@
   "nav": {
     "home": "בית",
     "feed": "פיד",
-    "scan": "סרוק כרטיס",
+    "scan": "סריקה",
     "contacts": "אנשי קשר",
     "pages": "הדפים שלי",
     "messages": "הודעות",
     "settings": "הגדרות",
     "profile": "פרופיל",
-    "signOut": "התנתק"
+    "signOut": "התנתק",
+    "stats": "סטטיסטיקה",
+    "menu": "תפריט"
   },
   "auth": {
     "signIn": "התחברות",
@@ -101,7 +103,8 @@
     "noNearbyEvents": "לא נמצאו אירועים בקרבת מקום",
     "dragDrop": "גרור ושחרר תמונת כרטיס כאן",
     "orBrowse": "או עיין בקבצים",
-    "uploadHint": "JPG, PNG, WebP או HEIC — קדמי ואחורי נתמכים"
+    "uploadHint": "JPG, PNG, WebP או HEIC — קדמי ואחורי נתמכים",
+    "goodLightingTip": "טיפ: תאורה טובה משפרת את דיוק הנתונים"
   },
   "contacts": {
     "title": "אנשי קשר",
@@ -200,7 +203,8 @@
     "justNow": "עכשיו",
     "minutesAgo": "לפני {count} דק׳",
     "hoursAgo": "לפני {count} שע׳",
-    "daysAgo": "לפני {count} ימים"
+    "daysAgo": "לפני {count} ימים",
+    "dailySnap": "הסנאפ היומי שלך"
   },
   "messages": {
     "title": "הודעות",

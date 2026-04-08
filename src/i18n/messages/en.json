@@ -17,13 +17,15 @@
   "nav": {
     "home": "Home",
     "feed": "Feed",
-    "scan": "Scan Card",
+    "scan": "Scan",
     "contacts": "Contacts",
     "pages": "My Pages",
     "messages": "Messages",
     "settings": "Settings",
     "profile": "Profile",
-    "signOut": "Sign Out"
+    "signOut": "Sign Out",
+    "stats": "Stats",
+    "menu": "Menu"
   },
   "auth": {
     "signIn": "Sign In",
@@ -101,7 +103,8 @@
     "noNearbyEvents": "No nearby events found",
     "dragDrop": "Drag & drop a card image here",
     "orBrowse": "or browse files",
-    "uploadHint": "JPG, PNG, WebP or HEIC — front and back supported"
+    "uploadHint": "JPG, PNG, WebP or HEIC — front and back supported",
+    "goodLightingTip": "Tip: Good lighting improves data accuracy"
   },
   "contacts": {
     "title": "Contacts",
@@ -200,7 +203,8 @@
     "justNow": "Just now",
     "minutesAgo": "{count}m ago",
     "hoursAgo": "{count}h ago",
-    "daysAgo": "{count}d ago"
+    "daysAgo": "{count}d ago",
+    "dailySnap": "Your Daily Snap"
   },
   "messages": {
     "title": "Messages",
