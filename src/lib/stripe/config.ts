@@ -1,8 +1,24 @@
 import Stripe from 'stripe';
 
-export const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2026-03-25.dahlia',
-  typescript: true,
+let _stripeInstance: Stripe | undefined;
+
+function getStripeInstance(): Stripe {
+  if (!_stripeInstance) {
+    const key = process.env.STRIPE_SECRET_KEY;
+    if (!key) throw new Error('Missing STRIPE_SECRET_KEY environment variable');
+    _stripeInstance = new Stripe(key, {
+      apiVersion: '2026-03-25.dahlia',
+      typescript: true,
+    });
+  }
+  return _stripeInstance;
+}
+
+// Lazy proxy — Stripe client is only instantiated on first access, not at build time
+export const stripe = new Proxy({} as Stripe, {
+  get(_target, prop: string | symbol) {
+    return (getStripeInstance() as unknown as Record<string | symbol, unknown>)[prop];
+  },
 });
 
 export const PLANS = {
@@ -19,7 +35,7 @@ export const PLANS = {
   },
   pro: {
     name: 'Pro',
-    price: 2000, // $20.00 in cents
+    price: 2000,
     limits: {
       businessPages: 10,
       customDomain: true,
@@ -32,8 +48,4 @@ export const PLANS = {
 
 export type PlanId = keyof typeof PLANS;
 
-/**
- * The Stripe Price ID for the Pro monthly subscription.
- * Set in your Stripe Dashboard → Products → Pro Plan → Pricing.
- */
 export const STRIPE_PRO_PRICE_ID = process.env.STRIPE_PRO_PRICE_ID!;
