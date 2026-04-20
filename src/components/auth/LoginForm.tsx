@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useTranslations } from 'next-intl';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
@@ -10,12 +10,15 @@ export function LoginForm() {
   const t = useTranslations('auth');
   const params = useParams();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const locale = params.locale as string;
+
+  const urlReason = searchParams.get('reason');
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState(urlReason ? `Sign-in failed: ${urlReason}` : '');
   const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   const supabase = createSupabaseBrowserClient();

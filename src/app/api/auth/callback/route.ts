@@ -32,7 +32,20 @@ export async function GET(request: NextRequest) {
 
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
 
-    if (!error && data.user) {
+    if (error) {
+      console.error('[auth/callback] exchangeCodeForSession failed:', {
+        message: error.message,
+        status: error.status,
+        name: error.name,
+        code: error.code,
+      });
+      const errorUrl = new URL(`${origin}/en/login`);
+      errorUrl.searchParams.set('error', 'auth_failed');
+      errorUrl.searchParams.set('reason', error.message || 'unknown');
+      return NextResponse.redirect(errorUrl);
+    }
+
+    if (data.user) {
       // Sync Supabase user to MySQL
       const supabaseUser = data.user;
       const metadata = supabaseUser.user_metadata || {};
@@ -87,6 +100,7 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // Auth error — redirect to login
-  return NextResponse.redirect(`${origin}/en/login?error=auth_failed`);
+  // No code in the request — redirect to login
+  console.error('[auth/callback] no code in request URL');
+  return NextResponse.redirect(`${origin}/en/login?error=auth_failed&reason=no_code`);
 }
