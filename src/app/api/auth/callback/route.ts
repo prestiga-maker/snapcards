@@ -1,26 +1,29 @@
-import { NextResponse } from 'next/server';
+import { NextResponse, type NextRequest } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
-import { cookies } from 'next/headers';
 import { prisma } from '@/lib/db';
 
-export async function GET(request: Request) {
+export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/en';
 
   if (code) {
-    const cookieStore = await cookies();
+    // Attach cookies directly to the redirect response so the session
+    // persists across the redirect. Using next/headers cookies() here
+    // does not propagate to NextResponse.redirect().
+    const response = NextResponse.redirect(`${origin}${next}`);
+
     const supabase = createServerClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
           getAll() {
-            return cookieStore.getAll();
+            return request.cookies.getAll();
           },
           setAll(cookiesToSet) {
             cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
+              response.cookies.set(name, value, options)
             );
           },
         },
@@ -80,7 +83,7 @@ export async function GET(request: Request) {
         // Don't block auth flow on DB errors
       }
 
-      return NextResponse.redirect(`${origin}${next}`);
+      return response;
     }
   }
 

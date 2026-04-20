@@ -56,9 +56,11 @@ export async function middleware(request: NextRequest) {
   const supabaseResponse = await updateSession(request);
   const intlResponse = intlMiddleware(request);
 
-  // Merge Supabase cookies into the i18n response
+  // Merge Supabase cookies into the i18n response, preserving all options
+  // (httpOnly, secure, sameSite, path, maxAge, etc.) — dropping these breaks
+  // session persistence and causes intermittent auth failures.
   supabaseResponse.cookies.getAll().forEach((cookie) => {
-    intlResponse.cookies.set(cookie.name, cookie.value);
+    intlResponse.cookies.set(cookie);
   });
 
   return intlResponse;
