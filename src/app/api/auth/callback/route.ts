@@ -6,6 +6,23 @@ export async function GET(request: NextRequest) {
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') ?? '/en';
+  const oauthError = searchParams.get('error');
+  const oauthErrorDescription = searchParams.get('error_description');
+  const oauthErrorCode = searchParams.get('error_code');
+
+  if (oauthError || oauthErrorDescription) {
+    console.error('[auth/callback] OAuth provider returned error:', {
+      error: oauthError,
+      error_description: oauthErrorDescription,
+      error_code: oauthErrorCode,
+      all_params: Object.fromEntries(searchParams.entries()),
+    });
+    const errorUrl = new URL(`${origin}/en/login`);
+    errorUrl.searchParams.set('error', 'oauth_error');
+    errorUrl.searchParams.set('reason', oauthErrorDescription || oauthError || 'unknown');
+    if (oauthErrorCode) errorUrl.searchParams.set('code', oauthErrorCode);
+    return NextResponse.redirect(errorUrl);
+  }
 
   if (code) {
     // Attach cookies directly to the redirect response so the session
@@ -100,7 +117,10 @@ export async function GET(request: NextRequest) {
     }
   }
 
-  // No code in the request — redirect to login
-  console.error('[auth/callback] no code in request URL');
+  // No code and no error — something weird happened
+  console.error('[auth/callback] no code and no error in request URL', {
+    all_params: Object.fromEntries(searchParams.entries()),
+    full_url: request.url,
+  });
   return NextResponse.redirect(`${origin}/en/login?error=auth_failed&reason=no_code`);
 }
